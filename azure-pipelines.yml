@@ -20,6 +20,7 @@ stages:
             inputs:
               terraformVersion: 'latest'
           - task: TerraformTask@5
+            displayName: "Terraform Init"
             inputs:
               provider: 'azurerm'
               command: 'init'
@@ -32,14 +33,17 @@ stages:
               workingDirectory: '$(System.DefaultWorkingDirectory)/envs/dev'
 
           - task: TerraformTask@5
+            displayName: "Terraform Plan"
             inputs:
               provider: 'azurerm'
               command: 'plan'
               environmentServiceNameAzureRM: 'MyServiceConnection'
               environmentAzureRmOverrideSubscriptionID: '1ef3481e-bfe1-4160-aeeb-862132dc8f0e'
               workingDirectory: '$(System.DefaultWorkingDirectory)/envs/dev'
+              commandOptions: '-var-file=terraform.tfvars'
 
           - task: TerraformTask@5
+            displayName: "Terraform Apply"
             inputs:
               provider: 'azurerm'
               command: 'apply'

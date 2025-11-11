@@ -4,7 +4,7 @@ trigger:
       - main
 
 stages:
-  - stage: Terraform Deploy
+  - stage: Terraform_Deploy
     displayName: "Terraform Deployment Stage"
     jobs:
       - job: Terraform_Job

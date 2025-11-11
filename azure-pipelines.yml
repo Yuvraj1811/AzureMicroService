@@ -1,0 +1,48 @@
+trigger:
+  branches:
+    include:
+      - main
+
+stages:
+  - stage: Terraform Deploy
+    displayName: "Terraform Deployment Stage"
+    jobs:
+      - job: Terraform_Job
+        displayName: "Terraform Single Job"
+        pool:
+         name:  'AgentPool'
+
+        steps:
+          - checkout: self
+
+          - task: TerraformInstaller@1
+            displayName: "Terraform Installer"
+            inputs:
+              terraformVersion: 'latest'
+          - task: TerraformTask@5
+            inputs:
+              provider: 'azurerm'
+              command: 'init'
+              backendServiceArm: 'MyServiceConnection'
+              backendAzureRmOverrideSubscriptionID: '1ef3481e-bfe1-4160-aeeb-862132dc8f0e'
+              backendAzureRmResourceGroupName: 'Rg-tfstate'
+              backendAzureRmStorageAccountName: 'tfbackendstrg'
+              backendAzureRmContainerName: 'tfstate2'
+              backendAzureRmKey: 'dev.terraform.tfstate'
+              workingDirectory: '$(System.DefaultWorkingDirectory)/envs/dev'
+
+          - task: TerraformTask@5
+            inputs:
+              provider: 'azurerm'
+              command: 'plan'
+              environmentServiceNameAzureRM: 'MyServiceConnection'
+              environmentAzureRmOverrideSubscriptionID: '1ef3481e-bfe1-4160-aeeb-862132dc8f0e'
+              workingDirectory: '$(System.DefaultWorkingDirectory)/envs/dev'
+
+          - task: TerraformTask@5
+            inputs:
+              provider: 'azurerm'
+              command: 'apply'
+              environmentServiceNameAzureRM: 'MyServiceConnection'
+              environmentAzureRmOverrideSubscriptionID: '1ef3481e-bfe1-4160-aeeb-862132dc8f0e'
+              workingDirectory: '$(System.DefaultWorkingDirectory)/envs/dev'

@@ -1,0 +1,11 @@
+# Ignore Terraform variable files
+terraform.tfvars
+*.auto.tfvars
+*.tfvars.json
+
+# Ignore Terraform state files
+*.tfstate
+*.tfstate.backup
+
+# Ignore crash logs
+crash.log

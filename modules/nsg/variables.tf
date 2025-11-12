@@ -12,7 +12,7 @@ variable "location" {
 }
 
 variable "security_rules" {
-  type = list(object({
+  type = map(object({
     name                       = string
     priority                   = number
     direction                  = string
@@ -24,7 +24,7 @@ variable "security_rules" {
     destination_address_prefix = string
   }))
 
-  default = []
+  default = {}
 
 }
 

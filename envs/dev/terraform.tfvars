@@ -1,2 +1,2 @@
 rg_name = "rginfra"
-location = "central india"
+location = "centralindia"

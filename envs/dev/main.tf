@@ -31,3 +31,26 @@ module "network_security_group" {
 }
 
 
+module "network_interface_card" {
+  source    = "../../modules/nic"
+  nic_name  = var.nic_name
+  rg_name   = var.rg_name
+  location  = var.location
+  subnet_id = module.virtual_network.subnet_id["frontend"]
+
+}
+
+
+module "virtual_machine" {
+  source         = "../../modules/virtual_machine"
+  vm_name        = "frontend_VM"
+  rg_name        = var.rg_name
+  location       = var.location
+  nic_id         = module.network_interface_card.nic_id
+  vm_size        = var.vm_size
+  admin_username = var.admin_username
+  admin_password = var.admin_password
+
+
+}
+

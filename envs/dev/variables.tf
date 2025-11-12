@@ -19,4 +19,4 @@ variable "security_rules" {}
 variable "nic_name" {}
 variable "vm_size" {}
 variable "admin_username" {}
-variable "admin_password" {}
+

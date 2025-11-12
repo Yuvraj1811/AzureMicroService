@@ -24,7 +24,7 @@ variable "security_rules" {
     destination_address_prefix = string
   }))
 
-  default = {}
+  default = []
 
 }
 

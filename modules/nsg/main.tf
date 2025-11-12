@@ -8,15 +8,15 @@ resource "azurerm_network_security_group" "this" {
   dynamic "security_rule" {
     for_each = var.security_rules
     content {
-      name                       = var.security_rule.name
-      priority                   = var.security_rule.priority
-      direction                  = var.security_rule.direction
-      access                     = var.security_rule.access
-      protocol                   = var.security_rule.protocol
-      source_port_range          = var.security_rule.source_port_range
-      destination_port_range     = var.security_rule.destination_address_prefix
-      source_address_prefix      = var.security_rule.source_address_prefix
-      destination_address_prefix = var.security_rule.destination_address_prefix
+      name                       = var.security_rule.value.name
+      priority                   = var.security_rule.value.priority
+      direction                  = var.security_rule.value.direction
+      access                     = var.security_rule.value.access
+      protocol                   = var.security_rule.value.protocol
+      source_port_range          = var.security_rule.value.source_port_range
+      destination_port_range     = var.security_rule.value.destination_address_prefix
+      source_address_prefix      = var.security_rule.value.source_address_prefix
+      destination_address_prefix = var.security_rule.value.destination_address_prefix
     }
   }
 

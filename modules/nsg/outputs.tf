@@ -4,5 +4,5 @@ output "nsg_id" {
 }
 
 output "nsg_subnet_associations" {
-  value = { for k, v in azurerm_subnet_network_security_group_association.this : k => v.id }
+  value = azurerm_subnet_network_security_group_association.this.id
 }

@@ -5,6 +5,7 @@ variable "owner" {}
 variable "project" {}
 variable "tags" {
   type = map(string)
+  default = {}
 
 }
 variable "subnets" {

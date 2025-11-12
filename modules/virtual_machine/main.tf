@@ -5,7 +5,7 @@ resource "azurerm_linux_virtual_machine" "this" {
   size                            = var.vm_size
   admin_username                  = var.admin_username
   network_interface_ids           = [var.nic_id]
-  admin_password                  = data.azurerm_key_vault_secret.admin_password.value
+  admin_password                  = var.admin_password
   disable_password_authentication = false
 
 

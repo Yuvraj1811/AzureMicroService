@@ -40,6 +40,17 @@ module "network_interface_card" {
 
 }
 
+data "azurerm_key_vault" "kv" {
+  name                = "AzureSecretCredentials "
+  resource_group_name = "Rg-tfstate"
+}
+
+
+data "azurerm_key_vault_secret" "admin_password" {
+  name         = "vmpassword"
+  key_vault_id = data.azurerm_key_vault.kv.id
+}
+
 
 module "virtual_machine" {
   source         = "../../modules/virtual_machine"
@@ -49,7 +60,7 @@ module "virtual_machine" {
   nic_id         = module.network_interface_card.nic_id
   vm_size        = var.vm_size
   admin_username = var.admin_username
-  admin_password = var.admin_password
+  admin_password = data.azurerm_key_vault_secret.admin_password.value
 
 
 }

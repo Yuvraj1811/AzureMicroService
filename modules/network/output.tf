@@ -5,5 +5,5 @@ output "vnet_id" {
 
 output "subnet_is" {
 
-  value = { for name, subnet in azurem_subnet.this : name => subnet.id }
+  value = { for name, subnet in azurerm_subnet.this : name => subnet.id }
 }

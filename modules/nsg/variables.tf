@@ -1,0 +1,33 @@
+variable "nsg_name" {
+    type = string
+  
+}
+
+variable "rg_name" {
+  type = string
+}
+
+variable "location" {
+  type = string
+}
+
+variable "security_rules" {
+    type = map(list(object({
+      name = string
+      priority = number
+      direction = string
+      access = string
+      protocol = string
+      source_port_range = string
+      destination_port_range = string
+      source_address_prefix = string
+      destination_address_prefix = string
+    })))
+
+    default = {}
+  
+}
+
+variable "subnet_id" {
+    type = map(string)
+}

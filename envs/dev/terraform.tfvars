@@ -12,7 +12,34 @@ subnets = {
   }
 }
 tags = {
-  department = "DevOps"
+  department  = "DevOps"
   environment = "dev"
-  costcenter = "CC101"
+  costcenter  = "CC101"
+}
+nsg_name = "acceptanceTestSecurityGroup1"
+security_rules = {
+  "allow_ssh" = {
+    name                       = "Allow SSH"
+    priority                   = 100
+    direction                  = "Inbound"
+    access                     = "Allow"
+    protocol                   = "Tcp"
+    source_port_range          = "*"
+    destination_port_range     = "22"
+    source_address_prefix      = "*"
+    destination_address_prefix = "*"
+  },
+  "allow_http" = {
+    name                       = "Allow-HTTP"
+    priority                   = 200
+    direction                  = "Inbound"
+    access                     = "Allow"
+    protocol                   = "Tcp"
+    source_port_range          = "*"
+    destination_port_range     = "80"
+    source_address_prefix      = "*"
+    destination_address_prefix = "*"
+
+  }
+
 }

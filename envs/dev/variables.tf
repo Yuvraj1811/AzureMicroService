@@ -14,3 +14,5 @@ variable "subnets" {
   }))
 
 }
+variable "nsg_name" {}
+variable "security_rules" {}

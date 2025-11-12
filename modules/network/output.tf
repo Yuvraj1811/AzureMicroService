@@ -3,7 +3,7 @@ output "vnet_id" {
 
 }
 
-output "subnet_is" {
+output "subnet_id" {
 
   value = { for name, subnet in azurerm_subnet.this : name => subnet.id }
 }

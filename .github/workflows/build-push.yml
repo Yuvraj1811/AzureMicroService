@@ -28,9 +28,11 @@ jobs:
           run: |
             cd ReactTodoUIMonolith
             docker build -t $ACR_NAME.azurecr.io/react:v1 .
+            docker push $ACR_NAME.azurecr.io/react:v1
         
         - name: Build and Push Backend Image
           run: |
             cd PyTodoBackendMonolith
             docker build -t $ACR_NAME.azurecr.io/backend:v1 .
+            docker push $ACR_NAME.azurecr.io/backend:v1
 

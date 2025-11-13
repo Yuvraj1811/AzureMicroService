@@ -41,7 +41,7 @@ module "network_interface_card" {
 }
 
 data "azurerm_key_vault" "kv" {
-  name                = "AzureSecretCredentials "
+  name                = "azuresecretcredentials"
   resource_group_name = "Rg-tfstate"
 }
 

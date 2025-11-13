@@ -22,47 +22,40 @@ module "virtual_network" {
 
 }
 
-module "frontend_nsg" {
+module "public_ip" {
+  source        = "../../modules/public_ip"
+  rg_name       = var.rg_name
+  location      = var.location
+  public_ip_map = var.public_ip_map
+
+}
+
+module "national_security_group" {
   source         = "../../modules/nsg"
-  nsg_name       = "frontendNSG"
+  for_each       = var.nsgs
+  nsg_name       = each.value.nsg_name
   rg_name        = var.rg_name
   location       = var.location
   security_rules = var.security_rules
-  subnet_id      = module.virtual_network.subnet_id["frontend"]
-
-}
-
-module "backend_nsg" {
-  source         = "../../modules/nsg"
-  nsg_name       = "backendNSG"
-  rg_name        = var.rg_name
-  location       = var.location
-  security_rules = var.security_rules
-  subnet_id      = module.virtual_network.subnet_id["backend"]
+  subnet_id      = module.virtual_network.subnet_id[each.value.subnet_name]
 
 }
 
 
-module "frontend_nic" {
-  source    = "../../modules/nic"
-  nic_name  = "frontendNIC"
-  rg_name   = var.rg_name
-  location  = var.location
-  subnet_id = module.virtual_network.subnet_id["frontend"]
-  nsg_id    = module.frontend_nsg.nsg_id
-
-
-}
-
-module "backend_nic" {
-  source    = "../../modules/nic"
-  nic_name  = "backendNIC"
-  rg_name   = var.rg_name
-  location  = var.location
-  subnet_id = module.virtual_network.subnet_id["backend"]
-  nsg_id    = module.backend_nsg.nsg_id
+module "network_interface_card" {
+  source       = "../../modules/nic"
+  for_each     = var.nics
+  nic_name     = each.value.nic_name
+  rg_name      = var.rg_name
+  location     = var.location
+  subnet_id    = module.virtual_network.subnet_id[each.value.subnet_name]
+  nsg_id       = output.nsg_ids[each.value.subnet_name]
+  public_ip_id = module.public_ip.public_ip_ids[each.value.subnet_name]
 
 }
+
+
+
 
 data "azurerm_key_vault" "kv" {
   name                = "azuresecretcredentials"
@@ -81,29 +74,19 @@ data "azurerm_key_vault_secret" "sql_password" {
 }
 
 
-module "frontend_virtual_machine" {
+module "virtual_machine" {
   source         = "../../modules/virtual_machine"
-  vm_name        = "frontendVM"
+  for_each       = var.vms
+  vm_name        = each.value.vm_name
   rg_name        = var.rg_name
   location       = var.location
-  nic_id         = module.frontend_nic.nic_id
-  vm_size        = var.vm_size
+  nic_id         = module.network_interface_card[each.key].nic_id
+  vm_size        = each.value.vm_size
   admin_username = var.admin_username
   admin_password = data.azurerm_key_vault_secret.admin_password.value
 
 }
 
-module "backend_virtual_machine" {
-  source         = "../../modules/virtual_machine"
-  vm_name        = "backendVM"
-  rg_name        = var.rg_name
-  location       = var.location
-  nic_id         = module.backend_nic.nic_id
-  vm_size        = var.vm_size
-  admin_username = var.admin_username
-  admin_password = data.azurerm_key_vault_secret.admin_password.value
-
-}
 
 
 module "sql_database" {

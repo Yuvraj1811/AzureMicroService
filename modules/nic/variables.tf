@@ -21,3 +21,7 @@ variable "subnet_id" {
 variable "nsg_id" {
   type = string
 }
+
+variable "public_ip_id" {
+    type = string
+}

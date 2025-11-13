@@ -16,7 +16,20 @@ tags = {
   environment = "dev"
   costcenter  = "CC101"
 }
+//----------NSG Name ----------\\
+nsgs = {
+  frontend = {
+    nsg_name    = "frontend_nsg"
+    subnet_name = "frontend"
+  }
+  backend = {
+    nsg_name    = "backend_nsg"
+    subnet_name = "backend"
+  }
 
+}
+
+//----------Security Rules ----------\\
 security_rules = {
   "allow_ssh" = {
     name                       = "Allow_SSH"
@@ -44,6 +57,43 @@ security_rules = {
 
 }
 
-vm_size = "Standard_B1s"
+///---- NIC ----\\\
+nics = {
+  frontend = {
+    nic_name = "frontend_nic"
+    subnet_name = "frontend"
+  }
+  backend = {
+    nic_name = "backend_nic"
+    subnet_name = "backend"
+  }
+}
+
+/////---- Public IP ----\\\\\
+public_ip_map = {
+  frontend = {
+    name              = "frontend_public_ip"
+    allocation_method = "Static"
+    sku               = "Standard"
+  },
+  backend = {
+    name              = "backend_public_ip"
+    allocation_method = "Static"
+    sku               = "Standard"
+  }
+}
+
+/// ---- VM ---- \\\
+vms = {
+  frontend = {
+    vm_name = "frontend_vm"
+    vm_size = "Standard_B1s"
+  },
+  backend = {
+    vm_name = "backend_vm"
+    vm_size = "Standard_B1s"
+  }
+
+}
 admin_username = "azureuser"
 sql_admin_user = "sqladminuser"

@@ -86,11 +86,11 @@ public_ip_map = {
 /// ---- VM ---- \\\
 vms = {
   frontend = {
-    vm_name = "frontend_vm"
+    vm_name = "frontendvm"
     vm_size = "Standard_B1s"
   },
   backend = {
-    vm_name = "backend_vm"
+    vm_name = "backendvm"
     vm_size = "Standard_B1s"
   }
 

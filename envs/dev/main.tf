@@ -1,3 +1,5 @@
+
+
 module "resource_group" {
   source   = "../../modules/resource_group"
   rg_name  = var.rg_name
@@ -74,7 +76,7 @@ data "azurerm_key_vault_secret" "admin_password" {
 }
 
 data "azurerm_key_vault_secret" "sql_password" {
-  name         = "sqlpassword"
+  name         = "sqlserverpassword"
   key_vault_id = data.azurerm_key_vault.kv.id
 }
 

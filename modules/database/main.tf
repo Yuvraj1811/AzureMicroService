@@ -15,12 +15,6 @@ resource "azurerm_mssql_database" "this" {
   license_type = "LicenseIncluded"
   max_size_gb  = 2
   sku_name     = "Basic"
-  enclave_type = "VBS"
 
 
-
-  # prevent the possibility of accidental data loss
-  lifecycle {
-    prevent_destroy = true
-  }
 }

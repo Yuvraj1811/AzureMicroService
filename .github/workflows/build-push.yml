@@ -32,5 +32,5 @@ jobs:
         - name: Build and Push Backend Image
           run: |
             cd PyTodoBackendMonolith
-            docker build - t $ACR_NAME.azurecr.io/backend:v1 .
+            docker build -t $ACR_NAME.azurecr.io/backend:v1 .
 

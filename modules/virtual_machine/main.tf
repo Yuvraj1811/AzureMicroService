@@ -39,7 +39,7 @@ resource "azurerm_linux_virtual_machine" "this" {
       type = "ssh"
       user = var.admin_username
       password = var.admin_password
-      host = azurerm_public_ip.this.ip_address
+      host = var.public_ip
     }
 
   }

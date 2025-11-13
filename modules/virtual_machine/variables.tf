@@ -26,3 +26,7 @@ variable "nic_id" {
     type = string
   
 }
+
+variable "public_ip" {
+  type = string
+}

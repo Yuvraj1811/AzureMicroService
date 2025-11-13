@@ -1,0 +1,6 @@
+[submodule "PyTodoBackendMonolith"]
+	path = PyTodoBackendMonolith
+	url = https://github.com/devopsinsiders/PyTodoBackendMonolith.git
+[submodule "ReactTodoUIMonolith"]
+	path = ReactTodoUIMonolith
+	url = https://github.com/devopsinsiders/ReactTodoUIMonolith.git

@@ -16,7 +16,7 @@ tags = {
   environment = "dev"
   costcenter  = "CC101"
 }
-nsg_name = "acceptanceTestSecurityGroup1"
+
 security_rules = {
   "allow_ssh" = {
     name                       = "Allow_SSH"
@@ -44,7 +44,6 @@ security_rules = {
 
 }
 
-nic_name = "nicinfra"
 vm_size = "Standard_B1s"
 admin_username = "azureuser"
 sql_admin_user = "sqladminuser"

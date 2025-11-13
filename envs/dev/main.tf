@@ -20,9 +20,9 @@ module "virtual_network" {
 
 }
 
-module "network_security_group" {
+module "frontend_nsg" {
   source         = "../../modules/nsg"
-  nsg_name       = var.nsg_name
+  nsg_name       = "frontendNSG"
   rg_name        = var.rg_name
   location       = var.location
   security_rules = var.security_rules
@@ -30,13 +30,35 @@ module "network_security_group" {
 
 }
 
+module "backend_nsg" {
+  source         = "../../modules/nsg"
+  nsg_name       = "backendNSG"
+  rg_name        = var.rg_name
+  location       = var.location
+  security_rules = var.security_rules
+  subnet_id      = module.virtual_network.subnet_id["backend"]
 
-module "network_interface_card" {
+}
+
+
+module "frontend_nic" {
   source    = "../../modules/nic"
-  nic_name  = var.nic_name
+  nic_name  = "frontendNIC"
   rg_name   = var.rg_name
   location  = var.location
   subnet_id = module.virtual_network.subnet_id["frontend"]
+  nsg_id    = module.frontend_nsg.nsg_id
+
+
+}
+
+module "backend_nic" {
+  source    = "../../modules/nic"
+  nic_name  = "backendNIC"
+  rg_name   = var.rg_name
+  location  = var.location
+  subnet_id = module.virtual_network.subnet_id["backend"]
+  nsg_id    = module.backend_nsg.nsg_id
 
 }
 
@@ -57,12 +79,24 @@ data "azurerm_key_vault_secret" "sql_password" {
 }
 
 
-module "virtual_machine" {
+module "frontend_virtual_machine" {
   source         = "../../modules/virtual_machine"
   vm_name        = "frontendVM"
   rg_name        = var.rg_name
   location       = var.location
-  nic_id         = module.network_interface_card.nic_id
+  nic_id         = module.frontend_nic.nic_id
+  vm_size        = var.vm_size
+  admin_username = var.admin_username
+  admin_password = data.azurerm_key_vault_secret.admin_password.value
+
+}
+
+module "backend_virtual_machine" {
+  source         = "../../modules/virtual_machine"
+  vm_name        = "backendVM"
+  rg_name        = var.rg_name
+  location       = var.location
+  nic_id         = module.backend_nic.nic_id
   vm_size        = var.vm_size
   admin_username = var.admin_username
   admin_password = data.azurerm_key_vault_secret.admin_password.value
@@ -70,7 +104,7 @@ module "virtual_machine" {
 }
 
 
-module "sql_databse" {
+module "sql_database" {
   source             = "../../modules/database"
   sql_server_name    = "sqlserverdev09"
   databasename       = "sqldatabasedev09"
@@ -78,6 +112,25 @@ module "sql_databse" {
   location           = var.location
   sql_admin_user     = var.sql_admin_user
   sql_admin_password = data.azurerm_key_vault_secret.sql_password.value
+
+}
+
+
+module "private_endpoint" {
+  source                         = "../../modules/private_endpoint"
+  private_ep_name                = "pe-sql-demo"
+  rg_name                        = var.rg_name
+  location                       = var.location
+  subnet_id                      = module.virtual_network.subnet_id["backend"]
+  private_connection_resource_id = module.sql_database.sql_server_id
+}
+
+module "azure_container_registry" {
+  source   = "../../modules/acr"
+  acr_name = "acrinfra123"
+  rg_name  = var.rg_name
+  location = var.location
+
 
 }
 

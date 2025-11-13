@@ -84,7 +84,7 @@ module "virtual_machine" {
   vm_size        = each.value.vm_size
   admin_username = var.admin_username
   admin_password = data.azurerm_key_vault_secret.admin_password.value
-  public_ip      = module.public_ip.public_ip_address[each.key]
+
 
 }
 

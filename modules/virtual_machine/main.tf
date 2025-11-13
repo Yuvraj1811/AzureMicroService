@@ -22,25 +22,31 @@ resource "azurerm_linux_virtual_machine" "this" {
     version   = "latest"
   }
 
-  provisioner "remote-exec" {
-    inline = [
-      "sudo apt-get update -y",
-      "sudo apt-get install -y apt-transport-https ca-certificates curl software-properties-common",
-      "curl -fsSL https://download.docker.com/linux/ubuntu/gpg | sudo apt-key add -",
-      "sudo add-apt-repository 'deb [arch=amd64] https://download.docker.com/linux/ubuntu jammy stable'",
-      "sudo apt-get update -y",
-      "sudo apt-get install -y docker-ce docker-ce-cli containerd.io",
-      "sudo usermod -aG docker ${var.admin_username}",
-      "sudo systemctl enable docker",
-      "sudo systemctl start docker"
-    ]
-
-    connection {
-      type = "ssh"
-      user = var.admin_username
-      password = var.admin_password
-      host = var.public_ip
-    }
-
-  }
 }
+
+ resource "azurerm_virtual_machine_extension" "docker_install" {
+  name                 = "install-docker"
+  virtual_machine_id   = azurerm_linux_virtual_machine.this.id
+  publisher            = "Microsoft.Azure.Extensions"
+  type                 = "CustomScript"
+  type_handler_version = "2.1"
+
+  settings = jsonencode({
+    commandToExecute = <<-EOF
+      bash -c '
+        set -e
+        echo "--- Updating system ---"
+        sudo apt-get update -y
+        echo "--- Installing Docker ---"
+        sudo apt-get install -y apt-transport-https ca-certificates curl software-properties-common
+        sudo apt-get install -y docker.io
+        sudo systemctl enable docker
+        sudo systemctl start docker
+        sudo usermod -aG docker ${var.admin_username}
+        docker --version
+      '
+    EOF
+  })
+
+}
+

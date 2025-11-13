@@ -27,6 +27,3 @@ variable "nic_id" {
   
 }
 
-variable "public_ip" {
-  type = string
-}

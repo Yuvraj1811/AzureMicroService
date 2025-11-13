@@ -54,7 +54,7 @@ data "azurerm_key_vault_secret" "admin_password" {
 
 module "virtual_machine" {
   source         = "../../modules/virtual_machine"
-  vm_name        = "frontend_VM"
+  vm_name        = "frontendVM"
   rg_name        = var.rg_name
   location       = var.location
   nic_id         = module.network_interface_card.nic_id

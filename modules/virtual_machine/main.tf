@@ -21,4 +21,26 @@ resource "azurerm_linux_virtual_machine" "this" {
     sku       = "22_04-lts"
     version   = "latest"
   }
+
+  provisioner "remote-exec" {
+    inline = [
+      "sudo apt-get update -y",
+      "sudo apt-get install -y apt-transport-https ca-certificates curl software-properties-common",
+      "curl -fsSL https://download.docker.com/linux/ubuntu/gpg | sudo apt-key add -",
+      "sudo add-apt-repository 'deb [arch=amd64] https://download.docker.com/linux/ubuntu jammy stable'",
+      "sudo apt-get update -y",
+      "sudo apt-get install -y docker-ce docker-ce-cli containerd.io",
+      "sudo usermod -aG docker ${var.admin_username}",
+      "sudo systemctl enable docker",
+      "sudo systemctl start docker"
+    ]
+
+    connection {
+      type = "ssh"
+      user = var.admin_username
+      password = var.admin_password
+      host = azurerm_public_ip.this.ip_address
+    }
+
+  }
 }

@@ -49,7 +49,7 @@ module "network_interface_card" {
   rg_name      = var.rg_name
   location     = var.location
   subnet_id    = module.virtual_network.subnet_id[each.value.subnet_name]
-  nsg_id       = module.module.national_security_group[each.value.subnet_name].nsg_id
+  nsg_id       = module.national_security_group[each.value.subnet_name].nsg_id
   public_ip_id = module.public_ip.public_ip_ids[each.value.subnet_name]
 
 }

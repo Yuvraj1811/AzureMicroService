@@ -47,3 +47,4 @@ security_rules = {
 nic_name = "nicinfra"
 vm_size = "Standard_B1s"
 admin_username = "azureuser"
+sql_admin_user = "sqladminuser"

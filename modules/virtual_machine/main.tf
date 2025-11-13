@@ -24,7 +24,7 @@ resource "azurerm_linux_virtual_machine" "this" {
 
 }
 
- resource "azurerm_virtual_machine_extension" "docker_install" {
+resource "azurerm_virtual_machine_extension" "docker_install" {
   name                 = "install-docker"
   virtual_machine_id   = azurerm_linux_virtual_machine.this.id
   publisher            = "Microsoft.Azure.Extensions"
@@ -32,21 +32,22 @@ resource "azurerm_linux_virtual_machine" "this" {
   type_handler_version = "2.1"
 
   settings = jsonencode({
-    commandToExecute = <<-EOF
+    commandToExecute = <<-EOT
       bash -c '
-        set -e
-        echo "--- Updating system ---"
-        sudo apt-get update -y
-        echo "--- Installing Docker ---"
-        sudo apt-get install -y apt-transport-https ca-certificates curl software-properties-common
-        sudo apt-get install -y docker.io
-        sudo systemctl enable docker
-        sudo systemctl start docker
-        sudo usermod -aG docker ${var.admin_username}
-        docker --version
+      set -e
+      echo "--- Updating system ---"
+      sudo apt-get update -y
+      echo "--- Installing dependencies ---"
+      sudo apt-get install -y apt-transport-https ca-certificates curl gnupg lsb-release
+      echo "--- Installing Docker ---"
+      sudo apt-get install -y docker.io
+      sudo systemctl enable docker
+      sudo systemctl start docker
+      sudo usermod -aG docker ${var.admin_username}
+      docker --version
       '
-    EOF
+    EOT
   })
-
 }
+
 

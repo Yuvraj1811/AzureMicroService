@@ -18,6 +18,6 @@ variable "security_rules" {}
 variable "vm_size" {}
 variable "admin_username" {}
 variable "sql_admin_user" {}
-variable "private_ep_name" {}
+
 
 

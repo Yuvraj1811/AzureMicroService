@@ -20,5 +20,4 @@ variable "nic_name" {}
 variable "vm_size" {}
 variable "admin_username" {}
 variable "sql_admin_user" {}
-variable "sql_admin_password" {}
 

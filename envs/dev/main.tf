@@ -51,6 +51,11 @@ data "azurerm_key_vault_secret" "admin_password" {
   key_vault_id = data.azurerm_key_vault.kv.id
 }
 
+data "azurerm_key_vault_secret" "sql_password" {
+  name         = "sqlpassword"
+  key_vault_id = data.azurerm_key_vault.kv.id
+}
+
 
 module "virtual_machine" {
   source         = "../../modules/virtual_machine"
@@ -66,13 +71,13 @@ module "virtual_machine" {
 
 
 module "sql_databse" {
-    source = "../../modules/database"
-    sql_server_name = "sqlserverdev09"
-    databasename = "sqldatabasedev09"
-    rg_name = var.rg_name
-    location = var.location
-    sql_admin_user = var.sql_admin_user
-    sql_admin_password = var.sql_admin_password
+  source             = "../../modules/database"
+  sql_server_name    = "sqlserverdev09"
+  databasename       = "sqldatabasedev09"
+  rg_name            = var.rg_name
+  location           = var.location
+  sql_admin_user     = var.sql_admin_user
+  sql_admin_password = data.azurerm_key_vault_secret.sql_password.value
 
 }
 

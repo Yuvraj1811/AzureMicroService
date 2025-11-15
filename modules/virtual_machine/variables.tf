@@ -32,6 +32,6 @@ variable "acr_image" {
 }
 
 variable "container_port" {
-  type = string
+  type = number
 }
 

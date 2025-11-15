@@ -50,20 +50,22 @@ variable "security_rules" {
 
 ///---- NIC -----\\\
 variable "nics" {
-    type = map(object({
-      nic_name = string
-      subnet_name = string
-    }))
-  
+  type = map(object({
+    nic_name    = string
+    subnet_name = string
+  }))
+
 }
 
 ///---- VM -----\\\
 variable "vms" {
-    type = map(object({
-      vm_name = string
-      vm_size = string
-    }))
-  
+  type = map(object({
+    vm_name        = string
+    vm_size        = string
+    acr_image      = string
+    container_port = number
+  }))
+
 }
 
 variable "admin_username" {}

@@ -32,21 +32,71 @@ resource "azurerm_virtual_machine_extension" "docker_install" {
   type_handler_version = "2.1"
 
   settings = jsonencode({
-    commandToExecute = <<-EOT
-      bash -c '
-      set -e
-      echo "--- Updating system ---"
-      sudo apt-get update -y
-      echo "--- Installing dependencies ---"
-      sudo apt-get install -y apt-transport-https ca-certificates curl gnupg lsb-release
-      echo "--- Installing Docker ---"
-      sudo apt-get install -y docker.io
-      sudo systemctl enable docker
-      sudo systemctl start docker
-      sudo usermod -aG docker ${var.admin_username}
-      docker --version
-      '
-    EOT
+    commandToExecute = "bash docker.sh"
+  })
+
+  protected_settings = jsonencode({
+    script = <<EOF
+#!/bin/bash
+
+set -e
+
+echo "Updating packages..."
+sudo apt-get update -y
+
+echo "Installing dependencies..."
+sudo apt-get install -y apt-transport-https ca-certificates curl gnupg lsb-release
+
+echo "Installing Docker..."
+sudo apt-get install -y docker.io
+
+sudo systemctl enable docker
+sudo systemctl start docker
+
+sudo usermod -aG docker ${var.admin_username}
+
+echo "Docker installation completed"
+docker --version
+EOF
+  })
+}
+
+resource "azurerm_virtual_machine_extension" "docker_autostart" {
+  name                 = "docker-autostart"
+  virtual_machine_id   = azurerm_linux_virtual_machine.this.id
+  publisher            = "Microsoft.Azure.Extensions"
+  type                 = "CustomScript"
+  type_handler_version = "2.1"
+
+  settings = jsonencode({
+    commandToExecute = "bash autostart.sh"
+  })
+
+  protected_settings = jsonencode({
+    script = <<EOF
+#!/bin/bash
+
+SERVICE_FILE=/etc/systemd/system/${var.vm_name}.service
+
+echo "Creating systemd service..."
+
+sudo bash -c "cat > $SERVICE_FILE" <<EOL
+[Unit]
+Description=Docker container service
+After=docker.service
+
+[Service]
+Restart=always
+ExecStart=/usr/bin/docker run --rm -p ${var.container_port}:${var.container_port} ${var.acr_image}
+ExecStop=/usr/bin/docker stop $(docker ps -q --filter ancestor=${var.acr_image})
+
+[Install]
+WantedBy=multi-user.target
+EOL
+
+sudo systemctl daemon-reload
+sudo systemctl enable ${var.vm_name}.service
+EOF
   })
 }
 

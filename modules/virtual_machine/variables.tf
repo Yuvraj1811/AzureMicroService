@@ -27,3 +27,11 @@ variable "nic_id" {
   
 }
 
+variable "acr_image" {
+  type = string
+}
+
+variable "container_port" {
+  type = string
+}
+

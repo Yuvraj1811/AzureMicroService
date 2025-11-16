@@ -88,14 +88,12 @@ vms = {
   frontend = {
     vm_name = "frontendvm" 
     vm_size = "Standard_B1s"
-    acr_image = "acrinfra123.azurecr.io/react:v1"
-    container_port = 80
+    
   },
   backend = {
     vm_name = "backendvm"
     vm_size = "Standard_B1s"
-    acr_image = "acrinfra123.azurecr.io/backend:v1"
-    container_port = 8000
+    
   }
 
 }

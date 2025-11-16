@@ -26,10 +26,20 @@ jobs:
             - name: Install Docker on VM
               run: |
                   az vm run-command invoke \
-                     --command-id RunShellScript \
-                     --resource-group $RG \
-                     --name $FRONTEND_VM \
-                     --scripts "sudo apt-get update -y && sudo apt-get install -y docker.io"
+                    --command-id RunShellScript \
+                    --resource-group $RG \
+                    --name $FRONTEND_VM \
+                    --scripts "
+                      sudo apt-get update -y
+                      sudo apt-get install -y apt-transport-https ca-certificates curl software-properties-common
+                      curl -fsSL https://download.docker.com/linux/ubuntu/gpg | sudo apt-key add -
+                      sudo add-apt-repository \
+                           'deb [arch=amd64] https://download.docker.com/linux/ubuntu jammy stable'
+                      sudo apt-get update -y
+                      sudo apt-get install -y docker-ce docker-ce-cli containerd.io
+                      sudo systemctl enable docker
+                      sudo systemctl start docker
+                      "
 
             - name: Deploy Frontend to VM
               run: |

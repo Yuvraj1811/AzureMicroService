@@ -21,6 +21,14 @@ jobs:
               with:
                   creds: ${{ secrets.AZURE_CREDENTIALS }}
 
+            - name: Install Docker on VM
+              run: |
+                  az vm run-command invoke \
+                     --command-id RunShellScript \
+                     --resource-group $RG \
+                     --name $FRONTEND_VM \
+                     --scripts "sudo apt-get update -y && sudo apt-get install -y docker.io"
+
             - name: Deploy Backend to VM
               run: |
                   az vm run-command invoke \
@@ -30,6 +38,9 @@ jobs:
                    --scripts "
                    sudo docker stop backend || true
                    sudo docker rm backend || true
+
+                    az acr login --name $ACR_NAME
+
                    sudo docker pull $ACR_NAME.azurecr.io/backend:v1
                    sudo docker run -d --name backend -p 8000:8000 $ACR_NAME.azurecr.io/backend:v1
                    "

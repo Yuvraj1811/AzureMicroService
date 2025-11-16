@@ -8,6 +8,8 @@ on:
 
 env:
     ACR_NAME: ${{ secrets.ACR_NAME }}
+    ACR_USERNAME: ${{ secrets.ACR_USERNAME }}
+    ACR_PASSWORD: ${{ secrets.ACR_PASSWORD }}
     RG: ${{ secrets.RG_NAME }}
     BACKEND_VM: ${{ secrets.BACKEND_VM }}
 
@@ -39,7 +41,8 @@ jobs:
                    sudo docker stop backend || true
                    sudo docker rm backend || true
 
-                    az acr login --name $ACR_NAME
+                    echo $ACR_PASSWORD | sudo docker login $ACR_NAME.azurecr.io \
+                       -u $ACR_USERNAME --password-stdin
 
                    sudo docker pull $ACR_NAME.azurecr.io/backend:v1
                    sudo docker run -d --name backend -p 8000:8000 $ACR_NAME.azurecr.io/backend:v1

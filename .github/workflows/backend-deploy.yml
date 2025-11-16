@@ -26,7 +26,7 @@ jobs:
                   az vm run-command invoke \
                      --command-id RunShellScript \
                      --resource-group $RG \
-                     --name $FRONTEND_VM \
+                     --name $BACKEND_VM \
                      --scripts "sudo apt-get update -y && sudo apt-get install -y docker.io"
 
             - name: Deploy Backend to VM

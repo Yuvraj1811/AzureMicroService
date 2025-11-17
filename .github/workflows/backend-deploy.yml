@@ -26,16 +26,36 @@ jobs:
       - name: Install Docker on VM
         run: |
           az vm run-command invoke \
-            --command-id RunShellScript \
-            --resource-group $RG \
-            --name $BACKEND_VM \
-            --scripts "
-              curl -fsSL https://get.docker.com -o get-docker.sh
-              sudo sh get-docker.sh
-              sudo usermod -aG docker azureuser
-              sudo systemctl enable docker
-              sudo systemctl start docker
-               "
+           --command-id RunShellScript \
+           --resource-group $RG \
+           --name $BACKEND_VM \
+           --scripts "
+             sudo apt-get update -y
+
+             sudo apt-get install -y \
+             ca-certificates \
+             curl \
+             gnupg
+
+             sudo install -m 0755 -d /etc/apt/keyrings
+
+             curl -fsSL https://download.docker.com/linux/ubuntu/gpg | \
+             sudo gpg --yes --dearmor -o /etc/apt/keyrings/docker.gpg
+
+             echo \
+              \"deb [arch=\$(dpkg --print-architecture) \
+              signed-by=/etc/apt/keyrings/docker.gpg] \
+              https://download.docker.com/linux/ubuntu \
+              \$(lsb_release -cs) stable\" | \
+              sudo tee /etc/apt/sources.list.d/docker.list > /dev/null
+
+             sudo apt-get update -y
+             sudo apt-get install -y docker-ce docker-ce-cli containerd.io
+
+             sudo usermod -aG docker azureuser
+             sudo systemctl enable docker
+             sudo systemctl start docker
+             "
 
       - name: Deploy Backend to VM
         run: |

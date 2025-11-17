@@ -19,5 +19,16 @@ resource "azurerm_linux_virtual_machine" "this" {
     sku       = "22_04-lts"
     version   = "latest"
   }
+
+  custom_data = base64encode(templatefile("${path.module}/cloud-init.yml", {
+    container_image = var.container_image
+    container_name  = var.container_name
+    container_port  = var.container_port
+    monitor_script = templatefile("${path.module}/scripts/monitor.py", {
+      container_name = var.container_name
+    })
+    })
+  )
+
 }
 

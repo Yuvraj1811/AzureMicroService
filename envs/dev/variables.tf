@@ -60,8 +60,11 @@ variable "nics" {
 ///---- VM -----\\\
 variable "vms" {
   type = map(object({
-    vm_name = string
-    vm_size = string
+    vm_name         = string
+    vm_size         = string
+    container_name  = string
+    container_image = string
+    container_port  = number
   }))
 
 }

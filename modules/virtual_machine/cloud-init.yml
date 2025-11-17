@@ -1,0 +1,36 @@
+package_update: true
+packages:
+  - python3
+  - python3-pip
+  - docker.io
+
+write_files:
+  - path: /opt/monitor.py
+    permissions: "0755"
+    content: |
+      ${monitor_script}
+
+runcmd:
+  - systemctl enable docker
+  - systemctl start docker
+
+  - docker pull ${container_image}
+  - docker run -d --name ${container_name} -p ${container_port}:${container_port} ${container_image}
+
+  - |
+    cat <<EOF > /etc/systemd/system/container-monitor.service
+    [Unit]
+    Description=Monitor and restart Docker container
+    After=docker.service
+
+    [Service]
+    ExecStart=/usr/bin/python /opt/monitor.py
+    Restart=always
+
+    [Install]
+    WantedBy =multi-user.target
+    EOF
+
+  - systemctl daemon-reload
+  - systemctl enable container-monitor.service
+  - systemctl start container-monitor.service

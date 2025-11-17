@@ -88,16 +88,16 @@ security_rules = {
     destination_address_prefix = "*"
   },
   "allow_azurecloud" = {
-  name                       = "Allow_AzureCloud"
-  priority                   = 320
-  direction                  = "Outbound"
-  access                     = "Allow"
-  protocol                   = "*"
-  source_port_range          = "*"
-  destination_port_range     = "*"
-  source_address_prefix      = "*"
-  destination_address_prefix = "AzureCloud"
-}
+    name                       = "Allow_AzureCloud"
+    priority                   = 330
+    direction                  = "Outbound"
+    access                     = "Allow"
+    protocol                   = "*"
+    source_port_range          = "*"
+    destination_port_range     = "*"
+    source_address_prefix      = "*"
+    destination_address_prefix = "AzureCloud"
+  }
 
 }
 

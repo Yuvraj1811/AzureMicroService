@@ -54,31 +54,9 @@ security_rules = {
     destination_address_prefix = "*"
 
   },
-  "allow_dns_udp" = {
-    name                       = "Allow_DNS_UDP"
-    priority                   = 300
-    direction                  = "Outbound"
-    access                     = "Allow"
-    protocol                   = "Udp"
-    source_port_range          = "*"
-    destination_port_range     = "53"
-    source_address_prefix      = "*"
-    destination_address_prefix = "*"
-  },
-  "allow_dns_tcp" = {
-    name                       = "Allow_DNS_TCP"
-    priority                   = 310
-    direction                  = "Outbound"
-    access                     = "Allow"
-    protocol                   = "Tcp"
-    source_port_range          = "*"
-    destination_port_range     = "53"
-    source_address_prefix      = "*"
-    destination_address_prefix = "*"
-  },
   "allow_https" = {
     name                       = "Allow_HTTPS"
-    priority                   = 320
+    priority                   = 300
     direction                  = "Outbound"
     access                     = "Allow"
     protocol                   = "Tcp"
@@ -87,17 +65,30 @@ security_rules = {
     source_address_prefix      = "*"
     destination_address_prefix = "*"
   },
-  "allow_azurecloud" = {
-    name                       = "Allow_AzureCloud"
+  "allow_dns_udp" = {
+    name                       = "Allow_DNS_UDP"
+    priority                   = 320
+    direction                  = "Outbound"
+    access                     = "Allow"
+    protocol                   = "Udp"
+    source_port_range          = "*"
+    destination_port_range     = "53"
+    source_address_prefix      = "AzureCloud"
+    destination_address_prefix = "*"
+  },
+
+  allow_dns_tcp = {
+    name                       = "Allow_DNS_TCP"
     priority                   = 330
     direction                  = "Outbound"
     access                     = "Allow"
-    protocol                   = "*"
+    protocol                   = "Tcp"
     source_port_range          = "*"
-    destination_port_range     = "*"
-    source_address_prefix      = "*"
-    destination_address_prefix = "AzureCloud"
+    destination_port_range     = "53"
+    source_address_prefix      = "AzureCloud"
+    destination_address_prefix = "*"
   }
+
 
 }
 

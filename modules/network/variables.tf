@@ -18,12 +18,7 @@ variable "address_space" {
   default = ["10.0.0.0/16"]
 }
 
-variable "dns_servers" {
-  type    = list(string)
-  default = ["10.0.0.4", "10.0.0.5"]
 
-
-}
 
 variable "environment" {
   description = "Deployment Environment: dev, prod, qa"

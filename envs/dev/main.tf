@@ -96,9 +96,8 @@ module "virtual_machine" {
 
 
   depends_on = [module.network_interface_card, module.resource_group]
-
-
 }
+
 
 # SQL DATABASE
 module "sql_database" {

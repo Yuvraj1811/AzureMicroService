@@ -136,6 +136,13 @@ vms = {
     container_name  = "backend"
     container_port  = 8000
 
+  },
+  elk = {
+    vm_name         = "elkvm"
+    vm_size         = "Standard_B1s"
+    container_image = ""
+    container_name  = ""
+    container_port  = 0
   }
 
 }

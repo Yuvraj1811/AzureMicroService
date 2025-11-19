@@ -65,14 +65,6 @@ module "network_interface_card" {
 }
 
 
-# ELK NIC
-module "elk_nic" {
-  source    = "../../modules/elk_nic"
-  rg_name   = var.rg_name
-  location  = var.location
-  subnet_id = module.virtual_network.subnet_id["elk"]
-}
-
 
 # KEY VAULT
 data "azurerm_key_vault" "kv" {
@@ -98,7 +90,7 @@ module "virtual_machine" {
   vm_name         = each.value.vm_name
   rg_name         = var.rg_name
   location        = var.location
-  nic_id          = each.key == "elk" ? module.elk_nic.elk_nic_id : module.network_interface_card[each.key].nic_id
+  nic_id          = module.network_interface_card[each.key].nic_id
   vm_size         = each.value.vm_size
   admin_username  = var.admin_username
   admin_password  = data.azurerm_key_vault_secret.admin_password.value

@@ -27,12 +27,11 @@ resource "azurerm_linux_virtual_machine" "this" {
     main_script = templatefile("${path.module}/scripts/main.py", {
       container_name = var.container_name
     })
-    docker_script     = templatefile("${path.module}/scripts/docker_utils.py", {})
-    alert_script      = templatefile("${path.module}/scripts/alert_utils.py", {})
-    system_script     = templatefile("${path.module}/scripts/system_utils.py", {})
-    requirements      = file("${path.module}/scripts/requirements.txt")
-    docker_compose    = templatefile("${path.module}/scripts/docker-compose.yml", {})
-    logstash_pipeline = file("${path.module}/scripts/logstash.conf")
+    docker_script = templatefile("${path.module}/scripts/docker_utils.py", {})
+    alert_script  = templatefile("${path.module}/scripts/alert_utils.py", {})
+    system_script = templatefile("${path.module}/scripts/system_utils.py", {})
+    requirements  = file("${path.module}/scripts/requirements.txt")
+
     })
   )
 

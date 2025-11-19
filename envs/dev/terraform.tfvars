@@ -10,9 +10,7 @@ subnets = {
   backend = {
     address_prefixes = ["10.0.2.0/24"]
   }
-  elk = {
-    address_prefixes = ["10.0.3.0/24"]
-  }
+
 }
 tags = {
   department  = "DevOps"
@@ -140,13 +138,7 @@ vms = {
     container_port  = 8000
 
   },
-  elk = {
-    vm_name         = "elkvm"
-    vm_size         = "Standard_B1s"
-    container_image = ""
-    container_name  = ""
-    container_port  = 0
-  }
+
 
 }
 admin_username = "azureuser"

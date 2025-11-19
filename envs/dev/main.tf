@@ -48,6 +48,7 @@ module "national_security_group" {
 
 }
 
+
 # NIC
 module "network_interface_card" {
   source       = "../../modules/nic"
@@ -59,8 +60,19 @@ module "network_interface_card" {
   nsg_id       = module.national_security_group[each.value.subnet_name].nsg_id
   public_ip_id = module.public_ip.public_ip_ids[each.value.subnet_name]
 
+
   depends_on = [module.resource_group, module.virtual_network, module.national_security_group, module.public_ip]
 }
+
+
+# ELK NIC
+module "elk_nic" {
+  source    = "../../modules/elk_nic"
+  rg_name   = var.rg_name
+  location  = var.location
+  subnet_id = module.virtual_network.subnet_id["elk"]
+}
+
 
 # KEY VAULT
 data "azurerm_key_vault" "kv" {
@@ -81,18 +93,18 @@ data "azurerm_key_vault_secret" "sql_password" {
 
 # VIRTUAL MACHINE
 module "virtual_machine" {
-  source         = "../../modules/virtual_machine"
-  for_each       = var.vms
-  vm_name        = each.value.vm_name
-  rg_name        = var.rg_name
-  location       = var.location
-  nic_id         = module.network_interface_card[each.key].nic_id
-  vm_size        = each.value.vm_size
-  admin_username = var.admin_username
-  admin_password = data.azurerm_key_vault_secret.admin_password.value
-  container_name = each.value.container_name
+  source          = "../../modules/virtual_machine"
+  for_each        = var.vms
+  vm_name         = each.value.vm_name
+  rg_name         = var.rg_name
+  location        = var.location
+  nic_id          = each.key == "elk" ? module.elk_nic.elk_nic_id : module.network_interface_card[each.key].nic_id
+  vm_size         = each.value.vm_size
+  admin_username  = var.admin_username
+  admin_password  = data.azurerm_key_vault_secret.admin_password.value
+  container_name  = each.value.container_name
   container_image = each.value.container_image
-  container_port = each.value.container_port
+  container_port  = each.value.container_port
 
 
   depends_on = [module.network_interface_card, module.resource_group]

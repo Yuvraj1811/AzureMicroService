@@ -10,6 +10,9 @@ subnets = {
   backend = {
     address_prefixes = ["10.0.2.0/24"]
   }
+  elk = {
+    address_prefixes = ["10.0.3.0/24"]
+  }
 }
 tags = {
   department  = "DevOps"

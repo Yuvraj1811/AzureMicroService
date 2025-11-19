@@ -3,34 +3,63 @@ packages:
   - python3
   - python3-pip
   - docker.io
+  - jq
 
 write_files:
-  - path: /opt/monitor.py
+  - path: /opt/main.py
     permissions: "0755"
     content: |
-      ${monitor_script}
+      ${main_script}
+
+  - path: /opt/docker_utils.py
+    permissions: "0755"
+    content: |
+      ${docker_script}
+
+  - path: /opt/alert_utils.py
+    permissions: "0755"
+    content: |
+      ${alert_script}
+
+  - path: /opt/system_utils.py
+    permissions: "0755"
+    content: |
+      ${system_script}
+  
+  - path: /opt/requirements.txt
+    permissions: "0644"
+    content: |
+      ${requirements}
 
 runcmd:
+  - mkdir -p /opt/monitor
+  - touch /var/log/container-monitor.log
+  - chmod 664 /var/log/container-monitor.log
   - systemctl enable docker
   - systemctl start docker
-
+  - pip3 install -r /opt/monitor/requirements.txt || true
   - docker pull ${container_image}
   - docker run -d --name ${container_name} -p ${container_port}:${container_port} ${container_image}
-
   - |
     cat <<EOF > /etc/systemd/system/container-monitor.service
     [Unit]
-    Description=Monitor and restart Docker container
+    Description=Container Auto-Heal Monitor
     After=docker.service
+    Requires=docker.service
 
     [Service]
-    ExecStart=/usr/bin/python3 /opt/monitor.py
+    Type=simple
+    ExecStart=/usr/bin/python3 /opt/main.py
     Restart=always
+    RestartSec=5
+    StartLimitBurst=5
+    StartLimitIntervalSec=60
+    StandardOutput=syslog
+    StandardError=syslog
 
     [Install]
     WantedBy=multi-user.target
     EOF
-
   - systemctl daemon-reload
   - systemctl enable container-monitor.service
   - systemctl start container-monitor.service

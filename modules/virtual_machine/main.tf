@@ -26,10 +26,10 @@ resource "azurerm_linux_virtual_machine" "this" {
     container_port  = var.container_port
     main_script = templatefile("${path.module}/scripts/main.py", {
       container_name = var.container_name
-    }),
-    docker_script = templatefile("${path.module}/scripts/docker_utils.py", {}),
-    alert_script  = templatefile("${path.module}/scripts/alert_utils.py", {}),
-    system_script = templatefile("${path.module}/scripts/system_utils.py", {}),
+    })
+    docker_script = templatefile("${path.module}/scripts/docker_utils.py", {})
+    alert_script  = templatefile("${path.module}/scripts/alert_utils.py", {})
+    system_script = templatefile("${path.module}/scripts/system_utils.py", {})
     })
   )
 

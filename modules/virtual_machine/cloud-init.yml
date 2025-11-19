@@ -24,11 +24,11 @@ runcmd:
     After=docker.service
 
     [Service]
-    ExecStart=/usr/bin/python /opt/monitor.py
+    ExecStart=/usr/bin/python3 /opt/monitor.py
     Restart=always
 
     [Install]
-    WantedBy =multi-user.target
+    WantedBy=multi-user.target
     EOF
 
   - systemctl daemon-reload

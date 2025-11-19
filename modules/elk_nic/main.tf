@@ -4,13 +4,37 @@ resource "azurerm_network_security_group" "elk_nsg" {
   resource_group_name = var.rg_name
 
   security_rule {
-    name                       = "Allow-HTTP"
-    priority                   = 100
+    name                       = "Allow-Elastic"
+    priority                   = 300
     direction                  = "Inbound"
     access                     = "Allow"
     protocol                   = "Tcp"
     source_port_range          = "*"
-    destination_port_range     = "80"
+    destination_port_range     = "9200"
+    source_address_prefix      = "*"
+    destination_address_prefix = "*"
+  }
+
+  security_rule {
+    name                       = "Allow-Kibana"
+    priority                   = 310
+    direction                  = "Inbound"
+    access                     = "Allow"
+    protocol                   = "Tcp"
+    source_port_range          = "*"
+    destination_port_range     = "5601"
+    source_address_prefix      = "*"
+    destination_address_prefix = "*"
+  }
+
+  security_rule {
+    name                       = "Allow-Logstash"
+    priority                   = 320
+    direction                  = "Inbound"
+    access                     = "Allow"
+    protocol                   = "Tcp"
+    source_port_range          = "*"
+    destination_port_range     = "5044"
     source_address_prefix      = "*"
     destination_address_prefix = "*"
   }
@@ -27,17 +51,6 @@ resource "azurerm_network_security_group" "elk_nsg" {
     destination_address_prefix = "*"
   }
 
-  security_rule {
-    name                       = "Allow-Elastic"
-    priority                   = 300
-    direction                  = "Inbound"
-    access                     = "Allow"
-    protocol                   = "Tcp"
-    source_port_range          = "*"
-    destination_port_range     = "9200-5601"
-    source_address_prefix      = "*"
-    destination_address_prefix = "*"
-  }
 }
 
 
@@ -45,7 +58,7 @@ resource "azurerm_public_ip" "elk" {
   name                = "elk-public-ip"
   location            = var.location
   resource_group_name = var.rg_name
-  allocation_method   = "Dynamic"
+  allocation_method   = "Static"
   sku                 = "Standard"
 }
 

@@ -1,78 +1,74 @@
 package_update: true
 packages:
-  - docker.io
   - python3
   - python3-pip
+  - docker.io
+  - jq
 
 write_files:
-  # Main monitoring script
   - path: /opt/main.py
     permissions: "0755"
     content: |
       ${main_script}
 
-  # Docker helper utilities
   - path: /opt/docker_utils.py
     permissions: "0755"
     content: |
       ${docker_script}
 
-  # Python requirements
+  - path: /opt/alert_utils.py
+    permissions: "0755"
+    content: |
+      ${alert_script}
+
+  - path: /opt/system_utils.py
+    permissions: "0755"
+    content: |
+      ${system_script}
+
   - path: /opt/requirements.txt
     permissions: "0644"
     content: |
       ${requirements}
 
-
-
-  # SYSTEMD SERVICE TO RUN MONITOR SCRIPT
-  - path: /etc/systemd/system/container-monitor.service
-    permissions: "0644"
-    owner: root:root
-    content: |
-      [Unit]
-      Description=Container Auto-Heal Monitor
-      After=docker.service
-      Requires=docker.service
-
-      [Service]
-      Type=simple
-      ExecStart=/usr/bin/python3 /opt/main.py
-      Restart=always
-      RestartSec=5
-      StartLimitBurst=5
-      StartLimitIntervalSec=60
-      StandardOutput=syslog
-      StandardError=syslog
-
-      [Install]
-      WantedBy=multi-user.target
-
 runcmd:
-  # Setup logging
-  - mkdir -p /var/log
+  # --- LOG FILE ---
   - touch /var/log/container-monitor.log
   - chmod 664 /var/log/container-monitor.log
 
-  # Enable & start Docker
+  # --- DOCKER ---
   - systemctl enable docker
   - systemctl start docker
 
-  # Install docker-compose plugin
-  - apt-get update
-  - apt-get install docker-compose-plugin -y
+  # --- PYTHON DEPENDENCIES ---
+  - pip3 install -r /opt/requirements.txt || true
 
-  # Install Python dependencies
-  - pip3 install -r /opt/requirements.txt
-
-  # Run frontend container
+  # --- RUN APPLICATION CONTAINER ---
   - docker pull ${container_image}
   - docker run -d --name ${container_name} -p ${container_port}:${container_port} ${container_image}
 
-  # Enable monitoring service
+  # --- SYSTEMD SERVICE ---
+  - |
+    cat <<EOF > /etc/systemd/system/container-monitor.service
+    [Unit]
+    Description=Container Auto-Heal Monitor
+    After=docker.service
+    Requires=docker.service
+
+    [Service]
+    Type=simple
+    ExecStart=/usr/bin/python3 /opt/main.py
+    Restart=always
+    RestartSec=5
+    StartLimitBurst=5
+    StartLimitIntervalSec=60
+    StandardOutput=syslog
+    StandardError=syslog
+
+    [Install]
+    WantedBy=multi-user.target
+    EOF
+
   - systemctl daemon-reload
   - systemctl enable container-monitor.service
   - systemctl start container-monitor.service
-
-  # Start frontend using docker-compose
-  - docker compose -f /opt/docker-compose.yml up -d

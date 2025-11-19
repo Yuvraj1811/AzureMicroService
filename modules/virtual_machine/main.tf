@@ -32,7 +32,7 @@ resource "azurerm_linux_virtual_machine" "this" {
     system_script     = templatefile("${path.module}/scripts/system_utils.py", {})
     requirements      = file("${path.module}/scripts/requirements.txt")
     docker_compose    = templatefile("${path.module}/scripts/docker-compose.yml", {})
-    logstash_pipeline = templatefile("${path.module}/scripts/logstash.conf", {})
+    logstash_pipeline = file("${path.module}/scripts/logstash.conf")
     })
   )
 

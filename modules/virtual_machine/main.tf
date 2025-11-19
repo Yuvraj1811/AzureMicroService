@@ -20,20 +20,6 @@ resource "azurerm_linux_virtual_machine" "this" {
     version   = "latest"
   }
 
-  custom_data = base64encode(templatefile("${path.module}/cloud-init.yml", {
-    container_image = var.container_image
-    container_name  = var.container_name
-    container_port  = var.container_port
-    main_script = templatefile("${path.module}/scripts/main.py", {
-      container_name = var.container_name
-    })
-    docker_script = templatefile("${path.module}/scripts/docker_utils.py", {})
-    alert_script  = templatefile("${path.module}/scripts/alert_utils.py", {})
-    system_script = templatefile("${path.module}/scripts/system_utils.py", {})
-    requirements  = file("${path.module}/scripts/requirements.txt")
-
-    })
-  )
 
 }
 

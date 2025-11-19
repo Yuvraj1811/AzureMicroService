@@ -94,11 +94,7 @@ module "virtual_machine" {
   vm_size         = each.value.vm_size
   admin_username  = var.admin_username
   admin_password  = data.azurerm_key_vault_secret.admin_password.value
-  container_name  = each.value.container_name
-  container_image = each.value.container_image
-  container_port  = each.value.container_port
-
-
+  
   depends_on = [module.network_interface_card, module.resource_group]
 }
 

@@ -32,14 +32,18 @@ write_files:
       ${requirements}
 
 runcmd:
-  - mkdir -p /opt/monitor
+  #---LOG FILE----
   - touch /var/log/container-monitor.log
   - chmod 664 /var/log/container-monitor.log
+  #---Docker---
   - systemctl enable docker
   - systemctl start docker
-  - pip3 install -r /opt/monitor/requirements.txt || true
+  #--Python Dependencies ---
+  - pip3 install -r /opt/requirements.txt || true
+  #---RUN APPLICATION CONTAINER---
   - docker pull ${container_image}
   - docker run -d --name ${container_name} -p ${container_port}:${container_port} ${container_image}
+  #---System Service----
   - |
     cat <<EOF > /etc/systemd/system/container-monitor.service
     [Unit]

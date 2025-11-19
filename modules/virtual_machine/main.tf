@@ -30,6 +30,7 @@ resource "azurerm_linux_virtual_machine" "this" {
     docker_script = templatefile("${path.module}/scripts/docker_utils.py", {})
     alert_script  = templatefile("${path.module}/scripts/alert_utils.py", {})
     system_script = templatefile("${path.module}/scripts/system_utils.py", {})
+    requirements  = file("${path.module}/scripts/requirements.txt")
     })
   )
 

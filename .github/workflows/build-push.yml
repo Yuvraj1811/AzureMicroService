@@ -7,6 +7,8 @@ on:
 
 env:
     ACR_NAME: ${{ secrets.ACR_NAME }}
+    SLACK_WEBHOOK: ${{ secrets.SLACK_WEBHOOK }}
+    EMAIL_TO: ${{ secrets.EMAIL_TO }}
 
 jobs:
    build: 
@@ -16,10 +18,35 @@ jobs:
         - name: Checkout Code
           uses: actions/checkout@v3
 
-        - name: Run SAST Scan (Bandit)
+#-----------------Backend Sast--------------------#
+        - name: Install Python and Bandit
           run: |
+            pip -m pip install --upgrade pip
             pip install bandit
-            python security/sast.py
+          
+        - name: Run Backend SAST
+          run: python security/sast.py
+
+        - name: Upload Bandit Report
+          uses: actions/upload-artifact@v3
+          with:
+            name: bandit-report
+            path: bandit-report.json
+
+#----------------Frontend SAST----------------------#
+        
+        - name: Run Frontend SAST(Semgrep)
+          run: |
+            chmod +x security/sast_semgrep.sh
+            ./security/sast_semgrep.sh
+
+        - name: Upload Semgrep Report
+          uses: actions/upload-artifact@v3
+          with:
+            name: frontend-semgrep-report
+            path: frontend-semgrep-report.json
+
+  #------------------Build & Push Docker-----------------#
 
         - name: Login to Azure
           uses: azure/login@v1
@@ -41,3 +68,25 @@ jobs:
             docker build -t $ACR_NAME.azurecr.io/backend:v1 .
             docker push $ACR_NAME.azurecr.io/backend:v1
 
+  #----------------Notify on failure--------------------------#
+
+        # - name: Slack Notification on Failure
+        #   if: failure()
+        #   uses: 8398a7/action-slack@v3
+        #   with:
+        #      status: failure
+        #      fields: repo,message,commit,author
+        #      webhook_url: ${{ secrets.SLACK_WEBHOOK }}
+
+        # - name: Email Notification on Failure
+        #   if: failure()
+        #   uses: dawidd6/action-send-mail@v3
+        #   with:
+        #      server_address: smtp.gmail.com
+        #      server_port: 465
+        #      username: ${{ secrets.EMAIL_USER }}
+        #      password: ${{ secrets.EMAIL_PASS }}
+        #      subject: "Build / SAST Failed"
+        #      to: ${{ secrets.EMAIL_TO }}
+        #      body: "Please check the GitHub Actions logs. Build or SAST failed."
+        #      secure: true

@@ -6,7 +6,7 @@ from jinja2 import Template
 # --------------------------
 # Paths to your reports
 # --------------------------
-artifact_dir = "artifacts"  # your folder
+artifact_dir = artifact_dir = os.environ.get('BUILD_ARTIFACTSTAGINGDIRECTORY', '.')
 tflint_file = os.path.join(artifact_dir, "tflint-report.json")
 tfsec_file = os.path.join(artifact_dir, "tfsec-report.json")
 checkov_file = os.path.join(artifact_dir, "checkov-report.json")

@@ -1,4 +1,6 @@
 terraform {
+  required_version = ">= 1.9.8"
+  
   backend "azurerm" {
     resource_group_name  = "Rg-tfstate"
     storage_account_name = "tfbackendstrg"

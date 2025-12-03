@@ -12,11 +12,7 @@ subnets = {
   }
 
 }
-tags = {
-  department  = "DevOps"
-  environment = "dev"
-  costcenter  = "CC101"
-}
+
 //----------NSG Name ----------\\
 nsgs = {
   frontend = {

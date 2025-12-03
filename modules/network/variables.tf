@@ -26,12 +26,7 @@ variable "environment" {
 
 }
 
-variable "tags" {
-  description = "Additional resource tags"
-  type        = map(string)
-  default     = {}
 
-}
 
 variable "subnets" {
   type = map(object({

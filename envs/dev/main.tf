@@ -15,10 +15,7 @@ module "virtual_network" {
   environment = "dev"
   subnets     = var.subnets
 
-  tags = {
-    owner   = var.owner
-    project = var.project
-  }
+
 
   depends_on = [module.resource_group]
 }

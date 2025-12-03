@@ -6,12 +6,7 @@ resource "azurerm_virtual_network" "this" {
   dns_servers         = []
 
 
-  tags = merge({
-    environment = var.environment
-    created_by  = "Terraform"
-    },
-    var.tags
-  )
+  
 }
 
 resource "azurerm_subnet" "this" {

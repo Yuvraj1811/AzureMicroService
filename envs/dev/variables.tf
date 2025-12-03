@@ -1,13 +1,19 @@
-variable "rg_name" {}
-variable "location" {}
-variable "vneet_name" {}
-variable "owner" {}
-variable "project" {}
-variable "tags" {
-  type    = map(string)
-  default = {}
-
+variable "rg_name" {
+  type = string
 }
+variable "location" {
+  type = string
+}
+variable "vneet_name" {
+  type = string
+}
+variable "owner" {
+  type = string
+}
+variable "project" {
+  type = string
+}
+
 
 ///----Subnets-----\\\
 variable "subnets" {
@@ -66,8 +72,12 @@ variable "vms" {
 
 }
 
-variable "admin_username" {}
-variable "sql_admin_user" {}
+variable "admin_username" {
+  type = string
+}
+variable "sql_admin_user" {
+  type = string
+}
 
 
 

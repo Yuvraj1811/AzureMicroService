@@ -3,50 +3,337 @@ trigger:
     include:
       - main
 
-stages:
-  - stage: Terraform_Deploy
-    displayName: "Terraform Deployment Stage"
-    jobs:
-      - job: Terraform_Job
-        displayName: "Terraform Single Job"
-        pool:
-         name:  'AgentPool'
+parameters:
+  - name: environment
+    displayName: "Select Environment"
+    type: string
+    default: dev
+    values:
+      - dev
+      - prod
 
+variables:
+  - name: TF_VERSION
+    value: '1.9.8'
+  - group: TerraformSecrets
+  - ${{ if eq(parameters.environment, 'dev') }}:
+      - group: Dev-Terraform-Backend
+  - ${{ if eq(parameters.environment, 'prod') }}:
+      - group: Prod-Terraform-Backend
+
+pool:
+ name: 'AgentPool'
+
+stages:
+  - stage: Pre_Commit
+    displayName: "Terraform Pre-Commit Checks"
+    jobs:
+      - job: Validate_and_Scan
+        displayName: "Init, Validate, Fmt"
         steps:
           - checkout: self
 
           - task: TerraformInstaller@1
             displayName: "Terraform Installer"
             inputs:
-              terraformVersion: 'latest'
+             terraformVersion: '$(TF_VERSION)'
+
           - task: TerraformTask@5
             displayName: "Terraform Init"
             inputs:
               provider: 'azurerm'
               command: 'init'
+              workingDirectory: '$(System.DefaultWorkingDirectory)/envs/${{ parameters.environment }}'
+              commandOptions: '-reconfigure'
               backendServiceArm: 'MyServiceConnection'
-              backendAzureRmOverrideSubscriptionID: '1ef3481e-bfe1-4160-aeeb-862132dc8f0e'
-              backendAzureRmResourceGroupName: 'Rg-tfstate'
-              backendAzureRmStorageAccountName: 'tfbackendstrg'
-              backendAzureRmContainerName: 'tfstate2'
-              backendAzureRmKey: 'dev.terraform.tfstate'
-              workingDirectory: '$(System.DefaultWorkingDirectory)/envs/dev'
+              backendAzureRmOverrideSubscriptionID: '$(subscriptionId)'
+              backendAzureRmResourceGroupName: '$(backendRg)'
+              backendAzureRmStorageAccountName: '$(backendStorage)'
+              backendAzureRmContainerName: '$(backendContainer)'
+              backendAzureRmKey: '$(backendKey)'
 
+          
+          - task: TerraformTask@5
+            displayName: "Terraform Validate"
+            inputs:
+              provider: 'azurerm'
+              command: 'validate'
+              workingDirectory: '$(System.DefaultWorkingDirectory)/envs/${{ parameters.environment }}'
+
+          
+          - task: TerraformTask@5
+            displayName: "Terraform Fmt"
+            inputs:
+              provider: 'azurerm'
+              command: 'custom'
+              outputTo: 'console'
+              customCommand: 'fmt'
+              environmentServiceNameAzureRM: 'MyServiceConnection'
+              workingDirectory: '$(System.DefaultWorkingDirectory)/envs/${{ parameters.environment }}'
+              
+
+      - job: TfLint_Job
+        displayName: "Terraform Tflint"
+        dependsOn: Validate_and_Scan
+        steps:
+          - checkout: self
+          - powershell: |
+              Remove-Item "$env:USERPROFILE\tflint.exe" -Force -ErrorAction SilentlyContinue
+              Remove-Item "$env:USERPROFILE\tflint.zip" -Force -ErrorAction SilentlyContinue
+              Invoke-WebRequest -Uri "https://github.com/terraform-linters/tflint/releases/latest/download/tflint_windows_amd64.zip" -OutFile "$env:USERPROFILE\tflint.zip"
+              Expand-Archive -Path "$env:USERPROFILE\tflint.zip" -DestinationPath "$env:USERPROFILE" -Force
+              Remove-Item "$env:USERPROFILE\tflint.zip"
+            displayName: "Download and Setup TFLint"
+
+          - powershell: |
+              & "$env:USERPROFILE\tflint.exe" --version
+              & "$env:USERPROFILE\tflint.exe" 
+            displayName: "Execute TFLint"
+            workingDirectory: '$(System.DefaultWorkingDirectory)/envs/${{ parameters.environment }}'
+            continueOnError: true
+
+      - job: Tfsec_Job
+        displayName: "Terraform Tfsec"
+        dependsOn: TfLint_Job
+        steps:
+          - checkout: self
+          - powershell: |
+              $tfsecPath = "$env:USERPROFILE\tfsec.exe"
+              Remove-Item $tfsecPath -Force -ErrorAction SilentlyContinue
+              Invoke-WebRequest -Uri "https://github.com/aquasecurity/tfsec/releases/latest/download/tfsec-windows-amd64.exe" -OutFile $tfsecPath
+              & $tfsecPath --version
+            displayName: "Download & Setup TFsec"
+
+          - powershell: |
+              & "$env:USERPROFILE\tfsec.exe" .
+            displayName: "Run TFsec Scan"
+            workingDirectory: '$(System.DefaultWorkingDirectory)/envs/${{ parameters.environment }}'
+            continueOnError: true
+
+      - job: Checkov_Job
+        displayName: "Terraform Checkov"
+        dependsOn: Tfsec_Job
+        steps:
+          - checkout: self
+          - powershell: |
+              pip install --upgrade pip
+              pip install checkov
+            displayName: "Install Checkov"
+
+          - powershell: |
+              checkov -d .
+              
+            displayName: "Run Checkov Scan"
+            workingDirectory: '$(System.DefaultWorkingDirectory)/envs/${{ parameters.environment }}'
+            continueOnError: true
+
+  - stage: Cost_Analysis
+    dependsOn: Pre_Commit
+    displayName: "Terraform Cost Estimation"
+    jobs:
+      - job: Infra_Cost
+        displayName: "Terraform Cost Estimation"
+        steps:
+          - checkout: self
+
+          - powershell: |
+               choco install infracost -y
+            displayName: "Install Infracost"
+
+          - task: AzureCLI@2
+            displayName: "Terraform Init using Access Key"
+            inputs:
+              azureSubscription: "MyServiceConnection"
+              scriptType: 'ps'
+              scriptLocation: 'inlineScript'
+              inlineScript: |
+                  $env:ARM_CLIENT_ID = "$(ARM_CLIENT_ID)"
+                  $env:ARM_CLIENT_SECRET = "$(ARM_CLIENT_SECRET)"
+                  $env:ARM_SUBSCRIPTION_ID = "$(ARM_SUBSCRIPTION_ID)"
+                  $env:ARM_TENANT_ID = "$(ARM_TENANT_ID)"
+
+                  
+                  cd "$(System.DefaultWorkingDirectory)\envs\${{ parameters.environment }}"
+
+                 
+                  terraform init -reconfigure `
+                    -backend-config="resource_group_name=$(backendRg)" `
+                    -backend-config="storage_account_name=$(backendStorage)" `
+                    -backend-config="container_name=$(backendContainer)" `
+                    -backend-config="key=$(backendKey)"
+
+                  
+          
           - task: TerraformTask@5
             displayName: "Terraform Plan"
             inputs:
               provider: 'azurerm'
               command: 'plan'
+              commandOptions: > 
+                -out=tfplan
+                -var "client_id=$(ARM_CLIENT_ID)"
+                -var "client_secret=$(ARM_CLIENT_SECRET)"
+                -var "tenant_id=$(ARM_TENANT_ID)"
+                -var "subscription_id=$(ARM_SUBSCRIPTION_ID)"
               environmentServiceNameAzureRM: 'MyServiceConnection'
-              environmentAzureRmOverrideSubscriptionID: '1ef3481e-bfe1-4160-aeeb-862132dc8f0e'
-              workingDirectory: '$(System.DefaultWorkingDirectory)/envs/dev'
-              commandOptions: '-var-file=terraform.tfvars'
+              workingDirectory: '$(System.DefaultWorkingDirectory)/envs/${{ parameters.environment }}'
+              
+          - powershell: |
+                $env:INFRACOST_API_KEY = "$(INFRACOST_API_KEY)"
+                infracost breakdown --path "tfplan" --format json --out-file infracost.json
+            displayName: "Generate Cost Report"
+            workingDirectory: '$(System.DefaultWorkingDirectory)/envs/${{ parameters.environment }}'
+
+          - powershell: |
+                $source = "$(System.DefaultWorkingDirectory)/envs/${{ parameters.environment }}/infracost.json"
+                $destination = "$(Build.ArtifactStagingDirectory)/envs/${{ parameters.environment }}/infracost.json"
+                New-Item -ItemType Directory -Force -Path "$(Build.ArtifactStagingDirectory)/envs/${{ parameters.environment }}"
+                Copy-Item $source $destination -Force
+            displayName: "Move Infracost Report to Artifact Staging Directory"
+
+
+          - task: PublishBuildArtifacts@1
+            displayName: "Publish Cost Report"
+            inputs:
+              PathtoPublish: '$(Build.ArtifactStagingDirectory)/envs/${{ parameters.environment }}/infracost.json'
+              ArtifactName: 'CostReport'
+              publishLocation: 'Container'
+
+  - stage: Code_Quality
+    dependsOn: Cost_Analysis
+    displayName: "SonarQube Scanner"
+    jobs:
+      - job: SonarQube_Jon
+        displayName: "SonarQube Scan"
+        steps:
+          - checkout: self
+
+          - task: SonarQubePrepare@7
+            inputs:
+              SonarQube: 'SonarQubeServer'
+              scannerMode: 'cli'
+              configMode: 'manual'
+              cliProjectKey: 'ifra-project'
+              cliProjectName: 'ifra-project'
+              cliSources: '$(System.DefaultWorkingDirectory)/envs/${{ parameters.environment }}'
+          - task: SonarQubeAnalyze@7
+            displayName: 'Run SonarQube Analysis'
+            inputs:
+              jdkversion: 'JAVA_HOME_17_X64'
+          - task: SonarQubePublish@7
+            inputs:
+              pollingTimeoutSec: '300'
+
+  - stage: Plan
+    dependsOn: Code_Quality
+    displayName: "Terraform Plan"
+    jobs:
+      - job: Terraform_Plan_Job
+        displayName: "Terraform Plan"
+        steps:
+          - checkout: self
 
           - task: TerraformTask@5
-            displayName: "Terraform Apply"
+            displayName: "Terraform Init"
             inputs:
               provider: 'azurerm'
-              command: 'apply'
+              command: 'init'
+              workingDirectory: '$(System.DefaultWorkingDirectory)/envs/${{ parameters.environment }}'
+              commandOptions: '-reconfigure'
+              backendServiceArm: 'MyServiceConnection'
+              backendAzureRmOverrideSubscriptionID: '$(subscriptionId)'
+              backendAzureRmResourceGroupName: '$(backendRg)'
+              backendAzureRmStorageAccountName: '$(backendStorage)'
+              backendAzureRmContainerName: '$(backendContainer)'
+              backendAzureRmKey: '$(backendKey)'
+                  
+          - task: TerraformTask@5
+            displayName: "Terraform Plan"
+            inputs:
+              provider: 'azurerm'
+              command: 'plan'
+              commandOptions: > 
+                -out=tfplan.out
+                -var "client_id=$(ARM_CLIENT_ID)"
+                -var "client_secret=$(ARM_CLIENT_SECRET)"
+                -var "tenant_id=$(ARM_TENANT_ID)"
+                -var "subscription_id=$(ARM_SUBSCRIPTION_ID)"
               environmentServiceNameAzureRM: 'MyServiceConnection'
-              environmentAzureRmOverrideSubscriptionID: '1ef3481e-bfe1-4160-aeeb-862132dc8f0e'
-              workingDirectory: '$(System.DefaultWorkingDirectory)/envs/dev'
+              workingDirectory: '$(System.DefaultWorkingDirectory)/envs/${{ parameters.environment }}'
+         
+          - task: PublishBuildArtifacts@1
+            displayName: "Publish tfplan Artifact"
+            inputs:
+              PathtoPublish: '$(System.DefaultWorkingDirectory)/envs/${{ parameters.environment }}/tfplan.out'
+              ArtifactName: 'tfplan'
+              publishLocation: 'Container'
+
+  - stage: Approval
+    dependsOn: Plan
+    displayName: "Manual Approval"
+    jobs:
+      - job: WaitForApproval
+        displayName: "Await Manual Approval"
+        pool: server
+        steps:
+          - task: ManualValidation@1
+            inputs:
+              notifyUsers: 'dataai@bminfotradegroup.com'
+              approvers: 'dataai@bminfotradegroup.com'
+              onTimeout: 'resume'
+
+    
+
+  - stage: Apply
+    dependsOn: Approval
+    displayName: "Terraform Apply Stage"
+    jobs:
+    - job: Terraform_Apply
+      displayName: "Terraform Apply"
+      steps:
+        - checkout: self
+
+        - task: TerraformInstaller@1
+          displayName: "Terraform Installer"
+          inputs:
+            terraformVersion: '$(TF_VERSION)'
+
+        - task: DownloadBuildArtifacts@0
+          displayName: "Download tfplan Artifact"
+          inputs:
+            buildType: 'current'
+            artifactName: 'tfplan'
+            downloadPath: '$(System.DefaultWorkingDirectory)/envs/${{ parameters.environment }}'
+
+        - task: AzureCLI@2
+          displayName: "Terraform Init using Access Key"
+          inputs:
+              azureSubscription: "MyServiceConnection"
+              scriptType: 'ps'
+              scriptLocation: 'inlineScript'
+              inlineScript: |
+                  $env:ARM_CLIENT_ID = "$(ARM_CLIENT_ID)"
+                  $env:ARM_CLIENT_SECRET = "$(ARM_CLIENT_SECRET)"
+                  $env:ARM_SUBSCRIPTION_ID = "$(ARM_SUBSCRIPTION_ID)"
+                  $env:ARM_TENANT_ID = "$(ARM_TENANT_ID)"
+
+                  
+                  cd "$(System.DefaultWorkingDirectory)\envs\${{ parameters.environment }}"
+
+                 
+                  terraform init -reconfigure `
+                    -backend-config="resource_group_name=$(backendRg)" `
+                    -backend-config="storage_account_name=$(backendStorage)" `
+                    -backend-config="container_name=$(backendContainer)" `
+                    -backend-config="key=$(backendKey)"
+
+
+        - task: TerraformTask@5
+          displayName: "Terraform Apply"
+          inputs:
+            provider: 'azurerm'
+            command: 'apply'
+            commandOptions: '-auto-approve tfplan/tfplan.out'
+            workingDirectory: '$(System.DefaultWorkingDirectory)/envs/${{ parameters.environment }}'
+            environmentServiceNameAzureRM: 'MyServiceConnection'
+

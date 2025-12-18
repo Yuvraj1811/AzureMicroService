@@ -1,12 +1,25 @@
 trigger:
  -main
 
-pool:
+pool: AgentPool
+
+
 
 stages:
-  - stage: 
+  - stage: Install_Node_Tool
     jobs:
-      - job: 
-        displayName: 
+      - job: Node_Tool_Job
+        displayName: Install Node Tool
+
         steps:
-          - 
+        - task: NodeTool@0
+          inputs:
+            versionSource: 'spec'
+            versionSpec: '18.x'
+
+        - task: Npm@1
+          displayName: Install Dependencies
+          inputs:
+            command: 'install'
+            workingDir: '$(System.DefaultWorkingDirectory)ReactTodoUIMonolith'
+          

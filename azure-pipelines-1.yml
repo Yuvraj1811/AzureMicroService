@@ -29,6 +29,12 @@ stages:
       - job: Sonar_Qube_Job
         displayName: Sonar Qube 
         steps:
+
+        - task: Npm@1
+          displayName: Install Dependencies (Sonar Stage)
+          inputs:
+            command: 'install'
+            workingDir: '$(System.DefaultWorkingDirectory)/ReactTodoUIMonolith'
         
         - script: |
             npm test -- --coverage --watchAll=false
@@ -44,11 +50,11 @@ stages:
             configMode: 'manual'
             cliProjectKey: 'react-app'
             cliProjectName: 'React App'
-            cliSources: '$(System.DefaultWorkingDirectory)\ReactTodoUIMonolith\src'
+            cliSources: '$(System.DefaultWorkingDirectory)/ReactTodoUIMonolith/src'
             extraProperties: |
               sonar.sourceEncoding=UTF-8
               sonar.exclusions=**/node_modules/**,**/build/**
-              sonar.tests=src
+              sonar.tests=$(System.DefaultWorkingDirectory)/ReactTodoUIMonolith/src
               sonar.test.inclusions=**/*.test.js,**/*.test.jsx
               sonar.javascript.lcov.reportPaths=coverage/lcov.info
 

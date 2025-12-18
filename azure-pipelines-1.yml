@@ -45,6 +45,19 @@ stages:
           displayName: Run React Tests with Coverage
           continueOnError: true
 
+          
+        - powershell: |
+              $url = "https://binaries.sonarsource.com/Distribution/sonar-scanner-cli/sonar-scanner-cli-5.0.1.3006-windows.zip"
+              $zip = "$(Agent.TempDirectory)\sonar-scanner.zip"
+              $dest = "$(Agent.ToolsDirectory)\sonar-scanner"
+
+              Invoke-WebRequest $url -OutFile $zip
+              Expand-Archive $zip -DestinationPath $dest -Force
+
+              $scannerPath = Get-ChildItem $dest | Select-Object -First 1
+              Write-Host "##vso[task.prependpath]$($scannerPath.FullName)\bin"
+          displayName: Install Sonar Scanner CLI
+
 
         - script: |
             sonar-scanner ^
@@ -53,6 +66,7 @@ stages:
               -Dsonar.sources=src ^
               -Dsonar.exclusions=**/node_modules/**,**/build/** ^
               -Dsonar.javascript.lcov.reportPaths=coverage/lcov.info ^
+              -Dsonar.sourceEncoding=UTF-8 ^
               -Dsonar.host.url=http://localhost:9000/ ^
               -Dsonar.login=squ_3fdb600cf914752c5c8fdd55a6327f535410aa9f
           workingDirectory: $(System.DefaultWorkingDirectory)/ReactTodoUIMonolith

@@ -3,7 +3,6 @@ trigger:
     include:
     - main
 
-pr: none
 
 
 pool: AgentPool
@@ -47,30 +46,15 @@ stages:
           continueOnError: true
 
 
-        - task: SonarQubePrepare@8
-          displayName: Sonar Qube Prepare
-          inputs:
-            SonarQube: 'SonarQubeServer'
-            scannerMode: 'cli'
-            configMode: 'manual'
-            cliProjectKey: 'react-app'
-            cliProjectName: 'React App'
-            cliSources: '$(System.DefaultWorkingDirectory)/ReactTodoUIMonolith/src'
-            extraProperties: |
-              sonar.sourceEncoding=UTF-8
-              sonar.exclusions=**/node_modules/**,**/build/**
-              sonar.tests=$(System.DefaultWorkingDirectory)/ReactTodoUIMonolith/src
-              sonar.test.inclusions=**/*.test.js,**/*.test.jsx
-              sonar.javascript.lcov.reportPaths=coverage/lcov.info
-
-        - task: SonarQubeAnalyze@8
-          displayName: Run Analysis
-          inputs:
-            jdkversion: 'JAVA_HOME_21_X64'
-
-        - task: SonarQubePublish@8
-          displayName: Publish
-          inputs:
-            pollingTimeoutSec: '300'
+        - script: |
+            sonar-scanner ^
+              -Dsonar.projectKey=react-app ^
+              -Dsonar.projectName="React App" ^
+              -Dsonar.sources=src ^
+              -Dsonar.exclusions=**/node_modules/**,**/build/** ^
+              -Dsonar.javascript.lcov.reportPaths=coverage/lcov.info ^
+              -Dsonar.host.url=http://localhost:9000/ ^
+              -Dsonar.login=squ_3fdb600cf914752c5c8fdd55a6327f535410aa9f
+          workingDirectory: $(System.DefaultWorkingDirectory)/ReactTodoUIMonolith
           
           

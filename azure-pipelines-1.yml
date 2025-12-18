@@ -28,6 +28,26 @@ stages:
     jobs:
       - job: Sonar_Qube_Job
         displayName: Sonar Qube 
-       
+        steps:
+
+        - task: SonarQubePrepare@8
+          displayName: Sonar Qube Prepare
+          inputs:
+            SonarQube: 'SonarQubeServer'
+            scannerMode: 'cli'
+            configMode: 'manual'
+            cliProjectKey: 'react-app'
+            cliProjectName: 'React App'
+            cliSources: '$(System.DefaultWorkingDirectory)\ReactTodoUIMonolith\src'
+
+        - task: SonarQubeAnalyze@8
+          displayName: Run Analysis
+          inputs:
+            jdkversion: 'JAVA_HOME_21_X64'
+
+        - task: SonarQubePublish@8
+          displayName: Publish
+          inputs:
+            pollingTimeoutSec: '300'
           
           

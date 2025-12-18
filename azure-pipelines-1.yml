@@ -22,4 +22,12 @@ stages:
           inputs:
             command: 'install'
             workingDir: '$(System.DefaultWorkingDirectory)\ReactTodoUIMonolith'
+
+  - stage: Sonar_Qube
+    dependsOn: Install_Node_Tool
+    jobs:
+      - job: Sonar_Qube_Job
+        displayName: Sonar Qube 
+       
+          
           

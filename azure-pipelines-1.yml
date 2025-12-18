@@ -1,8 +1,12 @@
 trigger:
- - main
+  branches:
+    include:
+    - main
+
+pr: none
+
 
 pool: AgentPool
-
 
 
 stages:
@@ -25,7 +29,6 @@ stages:
 
   - stage: Sonar_Qube
     dependsOn: Install_Node_Tool
-    condition: eq(variables['Build.SourceBranch'], 'refs/heads/main')
     jobs:
       - job: Sonar_Qube_Job
         displayName: Sonar Qube 

@@ -1,0 +1,12 @@
+trigger:
+ -main
+
+pool:
+
+stages:
+  - stage: 
+    jobs:
+      - job: 
+        displayName: 
+        steps:
+          - 
